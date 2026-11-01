@@ -1,0 +1,13 @@
+# ── 运行时数据：真实台账/日志/备份不入库（开源发布的数据样例第 2 步补 config.example）──
+data/*
+!data/README.md
+backup/
+exchange/
+
+# ── Python ──
+__pycache__/
+*.pyc
+
+# ── 本机/会话 ──
+.zcode/
+*.log
