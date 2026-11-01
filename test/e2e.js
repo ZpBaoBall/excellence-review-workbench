@@ -285,9 +285,12 @@ async function e1Table(page) {
   const backFirst = await page.$eval("#pg-info", (x) => x.textContent);
   t("E1o 重筛回第 1 页", /第 1\//.test(backFirst), backFirst);
 
-  // ⑧ 删到 ≤100 → 分页器隐藏
-  const cards = (await allCards()).filter((c) => String(c["企业名称"]).includes(`${ST}分页`));
-  for (const c of cards.slice(0, 8)) await rmCard(c.id);
+  // ⑧ 删到 ≤100 → 分页器隐藏（2026-11-02 删数动态化：用户真实卡增长不再顶爆断言；
+  //    至少删 8 张保持原覆盖，97 张分页卡足够承载）
+  const totalNow = (await allCards()).length;
+  const stFen = (await allCards()).filter((c) => String(c["企业名称"]).includes(`${ST}分页`));
+  const need = Math.min(stFen.length, Math.max(8, totalNow - 100));
+  for (const c of stFen.slice(0, need)) await rmCard(c.id);
   await page.reload({ waitUntil: "networkidle" });
   await page.waitForSelector("#tb tr", { timeout: 10000 });
   await sleep(400);
