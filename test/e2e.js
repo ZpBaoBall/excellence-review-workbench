@@ -154,6 +154,7 @@ async function cleanTestCards(mark) {
 
 /* ── 数据态守卫 ── */
 let origMd5 = "";
+let ORIG_IDS = [];               // 开跑时的台账卡集合快照（E7b 还原断言用，2026-11-02 动态化）
 async function guardEnter() {
   origMd5 = md5(LEDGER);
   fs.copyFileSync(LEDGER, BAK);
@@ -226,6 +227,10 @@ async function e1Table(page) {
   t("E1g 操作列不可排（无变化）", before === after);
 
   // ④ 造到 105 条（CSV 一次导入 97 张——禁并发建卡，见 importCsv 注释）
+  // 2026-11-02 美化包：基数动态取——用户真实卡不再干扰分页/图表断言（此前硬编码 105）
+  const baseTotal = await page.evaluate(async () =>
+    (await (await fetch("/api/projects")).json()).length);
+  const totalExp = baseTotal + (PAGE_N - 8);
   const t1 = Date.now();
   const irPg = await importCsv(Array.from({ length: PAGE_N - 8 }, (_, i) => ({
     ...BASE_ROW, "企业名称": `${ST}分页${String(i).padStart(3, "0")}有限公司`, "年份": 2024 })));
@@ -238,7 +243,7 @@ async function e1Table(page) {
   const rowsShown = await page.$$eval("#tb tr", (trs) => trs.length);
   t("E1h 105 条时首页渲染 100 行", rowsShown === 100, String(rowsShown));
   const info = await page.$eval("#pg-info", (x) => x.textContent);
-  t("E1i 分页信息文案", /第 1\/2 页 · 共 105 条/.test(info), info);
+  t("E1i 分页信息文案", new RegExp(`第 1/2 页 · 共 ${totalExp} 条`).test(info), info);
   const prevDisabled = await page.$eval("#pg-prev", (b) => b.disabled);
   t("E1j 首页 prev 禁用", prevDisabled === true);
 
@@ -246,7 +251,7 @@ async function e1Table(page) {
   await page.click("#pg-next");
   await sleep(400);
   const rows2 = await page.$$eval("#tb tr", (trs) => trs.length);
-  t("E1k 第 2 页渲染剩余 5 行", rows2 === 5, String(rows2));
+  t("E1k 第 2 页渲染剩余行", rows2 === totalExp - 100, String(rows2));
   const nextDisabled = await page.$eval("#pg-next", (b) => b.disabled);
   t("E1l 末页 next 禁用", nextDisabled === true);
   const prevUsable = await page.$eval("#pg-prev", (b) => b.disabled);
@@ -263,10 +268,10 @@ async function e1Table(page) {
     } catch { return null; }
   });
   if (chartSum !== null) {
-    t("E1n 图表数据全量（105，非当前页 5）", chartSum === 105, String(chartSum));
+    t("E1n 图表数据全量（全量，非当前页切片）", chartSum === totalExp, String(chartSum));
   } else {
     const meta = await page.$eval("#meta, .meta", (x) => x.textContent).catch(() => "");
-    t("E1n 图表数据全量（meta 降级验法）", /当前筛选 105/.test(meta), meta);
+    t("E1n 图表数据全量（meta 降级验法）", new RegExp(`当前筛选 ${totalExp}`).test(meta), meta);
   }
 
   // ⑦ 翻页后改筛选 → 回第 1 页（先切回台账 tab——图表 tab 下表格视图隐藏）
@@ -608,7 +613,8 @@ async function e4ClauseBackfill(page, jsErrors) {
   const soulGone = await page.$eval("#soulModal", (m) => m.style.display !== "flex");
   t("E4e 归位确认后不进灵魂考问", soulGone);
   const placeVisible = await page.$eval("#placeModal", (m) => m.style.display === "flex");
-  t("E4f 归位确认后直接进写入弹窗", placeVisible);
+  // 2026-11-02 老张定：归位确认后直接写入，不再弹写入确认窗
+  t("E4f 归位确认后直接写入（不弹写入确认窗）", !placeVisible);
   // 写入目标按阶段锁定（2026-10-27 用户定：报告归口唯一化，不允许双存）——
   // 本卡文审态（类别首元素=文件评审、阶段未到现场）：锁「文审报告（20 库）」，现场按钮变灰不可选
   const lockW = await page.evaluate(() => {
@@ -620,8 +626,11 @@ async function e4ClauseBackfill(page, jsErrors) {
   t("E4f2 文审态锁定：现场按钮 disabled 变灰不可选",
     lockW.wenDisabled === false && lockW.wenActive === true
     && lockW.xianDisabled === true && lockW.xianActive === false, JSON.stringify(lockW));
-  await page.click("#placeOk");
-  await sleep(2500);
+  // 2026-11-02 老张定：写入自动进行——等「已写入：」toast 即完成信号（替代旧 placeOk 点击）
+  await page.waitForFunction(
+    () => [...document.querySelectorAll(".toast")].some((x) => (x.textContent || "").includes("已写入")),
+    { timeout: 20000 });
+  await sleep(400);
 
   // 写入成功：写入弹窗 + 报告窗体都关（2026-10-27 用户定：确认写入后后面的窗口也自动关闭）
   const modalsClosed = await page.evaluate(() =>
@@ -650,7 +659,10 @@ async function e4ClauseBackfill(page, jsErrors) {
   await sleep(500);
   await page.click("#clauseOk");
   await sleep(400);
-  await page.click("#placeOk");        // 归位确认后直接进写入弹窗（无灵魂考问，2026-10-27）
+  // 2026-11-02 老张定：归位确认后直接写入（不再弹写入确认窗）——等完成 toast
+  await page.waitForFunction(
+    () => [...document.querySelectorAll(".toast")].some((x) => (x.textContent || "").includes("已写入")),
+    { timeout: 20000 });
   await sleep(2500);
   const md2 = fs.readFileSync(mdPath, "utf-8");
   t("E4l 重跑不碰手写节（复盘沉淀保留）", md2.includes("手写防覆盖标记-xyz123"));
@@ -786,6 +798,12 @@ async function e5SoulAndMode(page, ctx) {
   //    写入后复盘门禁由「终版已写」接住
   await page.click("#extract-write");
   await sleep(500);
+  // 钩住 ui.toast 捕获引导文案——必须先于 clauseOk（2026-11-02 老张定：归位确认后即自动写入）
+  await page.evaluate(() => {
+    window.__toasts = [];
+    const orig = ui.toast;
+    ui.toast = function (m) { window.__toasts.push(String(m)); return orig.apply(this, arguments); };
+  });
   await page.click("#clauseOk");
   await sleep(400);
   const lockFinal = await page.evaluate(() => {
@@ -795,31 +813,28 @@ async function e5SoulAndMode(page, ctx) {
   });
   t("E5h 现场态锁定：写入目标=现场报告终版（30 库）",
     lockFinal.xianDisabled === false && lockFinal.xianActive === true, JSON.stringify(lockFinal));
-  // 钩住 ui.toast 捕获引导文案（不依赖 3.6s 自动消失的时序）
-  await page.evaluate(() => {
-    window.__toasts = [];
-    const orig = ui.toast;
-    ui.toast = function (m) { window.__toasts.push(String(m)); return orig.apply(this, arguments); };
-  });
-  await page.click("#placeOk");
-  await sleep(2500);
+  // 2026-11-02 老张定：归位确认后直接写入；终版写入后直接关闭报告窗体（复盘可随时从台账重开）
+  await page.waitForFunction(
+    () => [...document.querySelectorAll(".toast")].some((x) => (x.textContent || "").includes("已写入")),
+    { timeout: 20000 });
+  await sleep(600);
   const finalWrite = await page.evaluate(() => {
     return {
       placeClosed: $("placeModal").style.display === "none",
-      reportOpen: $("reportModal").style.display === "flex",
-      reviewOn: (document.querySelector('#m-tabs button[data-v="review"]') || {}).classList?.contains("on"),
+      reportClosed: $("reportModal").style.display === "none",
       toasts: window.__toasts || [],
     };
   });
-  t("E5h2 终版写入：placeModal 关 / 报告窗体保持开（自动切复盘页，2026-10-30 最终拍板）",
-    finalWrite.placeClosed === true && finalWrite.reportOpen === true, JSON.stringify(finalWrite));
-  t("E5h2b 终版写入后已自动切到复盘 tab", finalWrite.reviewOn === true, String(finalWrite.reviewOn));
+  t("E5h2 终版写入：placeModal 关 / 报告窗体直接关闭（2026-11-02 老张定）",
+    finalWrite.placeClosed === true && finalWrite.reportClosed === true, JSON.stringify(finalWrite));
   t("E5h3 终版 toast 引导复盘四步（做法/模式/四问/归档）",
     finalWrite.toasts.some((x) => x.includes("终版报告已生成") && x.includes("已进入复盘")
       && x.includes("归档")),
     JSON.stringify(finalWrite.toasts).slice(0, 120));
   // 终版写入后：复盘 tab 开启（信号源=卡片「终版已写」，写入日期由后端回填）
-  // （报告窗体已开着且停在复盘页，无需再点表格行——点会被遮罩挡）
+  // （窗体已关——从台账重开卡拿新门禁，下一步流程自己点复盘 tab）
+  await page.click(`#tb tr[data-id="${pid}"]`);
+  await sleep(1200);
   const gateFinal = await page.$eval('#m-tabs button[data-v="review"]', (b) => b.disabled);
   t("E5a1 终版写入后复盘 tab 开启（信号源=终版已写）", gateFinal === false, String(gateFinal));
   const cFinal = (await allCards()).find((c) => c.id === pid);
@@ -1052,8 +1067,11 @@ async function e6PracticeView(page, ctx) {
   await page.selectOption('#clauseBody select >> nth=0', "4.6");
   await page.click("#clauseOk");
   await sleep(300);
-  const pl = await page.$("#placeOk");   // 归位确认后直接进写入弹窗（无灵魂考问，2026-10-27）
-  if (pl) { await pl.click(); await sleep(2000); }
+  // 2026-11-02 老张定：归位确认后直接写入（不再弹写入确认窗）——等完成 toast
+  await page.waitForFunction(
+    () => [...document.querySelectorAll(".toast")].some((x) => (x.textContent || "").includes("已写入")),
+    { timeout: 20000 });
+  await sleep(2000);
   // 再提取：记忆应带出 4.6（终版写入后报告弹窗按设计保留，先收遮罩再重开项目走提取链）
   await closeOverlays(page);
   await page.click(`#tb tr[data-id="${pid}"]`);
@@ -1096,8 +1114,9 @@ async function e7Hygiene() {
     `删卡 ${n1 + n2} 张`);
   const cards = await allCards();
   const ids = cards.map((c) => c.id);
-  t("E7b 台账恰 2 张真实卡", ids.length === 2 && ids.includes("2026-SH-文审-001"),
-    ids.join(","));
+  // 2026-11-02 美化包：还原断言改动态——与开跑时快照逐一比对（用户真实卡数量不再影响）
+  t("E7b 台账还原=初始卡集合（不多不少）",
+    JSON.stringify([...ids].sort()) === JSON.stringify([...ORIG_IDS].sort()), ids.join(","));
   const now = md5(LEDGER);
   t("E7c ledger 还原后 md5 一致", now === origMd5, `${origMd5.slice(0, 8)} vs ${now.slice(0, 8)}`);
 }
@@ -1115,6 +1134,8 @@ async function e7Hygiene() {
     await page.goto(BASE, { waitUntil: "networkidle" });
     await page.waitForSelector("#tb tr", { timeout: 15000 });
     await sleep(400);
+    ORIG_IDS = await page.evaluate(async () =>
+      (await (await fetch("/api/projects")).json()).map((c) => c.id));
 
     await e1Table(page);
     await e2Search(page);

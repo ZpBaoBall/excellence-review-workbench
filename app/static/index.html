@@ -3,10 +3,19 @@
 <head>
 <meta charset="utf-8">
 <title>卓越绩效评审工作台</title>
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%234a9eff"/><text x="32" y="43" font-size="32" font-family="system-ui" font-weight="600" fill="white" text-anchor="middle">卓</text></svg>'>
 <style>
 :root{
-  --bg:#16181d; --panel:#1e2229; --panel2:#242932; --bd:#333a45;
+  --bg:#16181d; --panel:#1e2229; --panel2:#242932; --bd:#333a45; --bd2:#262b34;
   --tx:#e6e9ef; --tx2:#9aa3b2; --ac:#4a9eff; --warn:#ef9f27; --ok:#38c5a0;
+  --line:#333a45; --hover:#212630; --sel:#1d3350;
+}
+/* 浅色主题（2026-11-02 美化包①）：组件颜色一律走 var(--*)，html.light 覆盖变量即整站切换。
+   --line 此前被 .modbar/.modact 引用却从未定义（边框退化成文字色），本次一并补上。 */
+html.light{
+  --bg:#f4f6f9; --panel:#ffffff; --panel2:#eef1f6; --bd:#d4dbe4; --bd2:#e2e7ee;
+  --tx:#242a31; --tx2:#5b6673; --ac:#1c66c4; --warn:#a96a08; --ok:#0d8f70;
+  --line:#d4dbe4; --hover:#edf1f6; --sel:#d9e9fb;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);
@@ -35,10 +44,10 @@ h1{font-size:16px;font-weight:500;margin:0}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{position:sticky;top:0;background:var(--panel2);color:var(--tx2);font-weight:500;
   text-align:left;padding:8px 10px;border-bottom:1px solid var(--bd);white-space:nowrap}
-td{padding:7px 10px;border-bottom:1px solid #262b34;white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid var(--bd2);white-space:nowrap}
 tr{cursor:pointer}
-tr:hover td{background:#212630}
-tr.sel td{background:#1d3350}
+tr:hover td{background:var(--hover)}
+tr.sel td{background:var(--sel)}
 .todo{color:var(--warn)}
 .score{font-weight:500}
 /* B4 列头排序：可排序表头手势 + 当前列 ▲/▼ 指示 */
@@ -145,10 +154,17 @@ textarea{width:100%;background:var(--panel2);color:var(--tx);border:1px solid va
 .uiconfirm .cmsg{white-space:pre-line;font-size:14px;line-height:1.7;color:var(--tx);
   user-select:text;cursor:text;margin-bottom:16px;max-height:60vh;overflow:auto}
 .uiconfirm .cbtns{display:flex;gap:10px;justify-content:flex-end}
-.obox-rz{position:absolute;top:0;bottom:0;width:8px;cursor:col-resize;z-index:6}
+.obox-rz{position:absolute;top:0;bottom:0;width:12px;cursor:col-resize;z-index:6}
 .obox-rz.l{left:0}
 .obox-rz.r{right:0}
-.obox-rz:hover,.obox-rz.on{background:var(--ac)}
+/* 把手视觉提示（2026-11-02 美化包⑥）：平时中央细握把，悬停/拖拽中亮主题色 */
+.obox-rz::after,.opane-rz::after{content:'';position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);width:3px;border-radius:2px;background:transparent;transition:background .15s}
+.obox-rz::after{height:36px}
+.opane-rz::after{height:28px}
+.obox-rz:hover::after,.obox-rz.on::after,.opane-rz:hover::after,.opane-rz.on::after{background:var(--ac)}
+.obox-rz:hover,.obox-rz.on{background:transparent}
+.obox-rz{cursor:col-resize}
 .obox.full .obox-rz{display:none}
 .ohead{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid var(--bd)}
 .ohead h3{margin:0;font-size:15px;flex:1}
@@ -272,8 +288,8 @@ mark{background:#3a3522;color:#f0d98c;padding:0 3px;border-radius:3px}
 .opane-expand{display:none;align-items:center;justify-content:center;flex:none;padding:12px 0;cursor:pointer;color:var(--ac);border-bottom:1px solid var(--bd);font-size:12px}
 .opane-left.collapsed .opane-expand{display:flex;writing-mode:vertical-rl}
 .opane-left.collapsed .opane-left-head,.opane-left.collapsed .opane-list{display:none}
-.opane-rz{flex:0 0 6px;cursor:col-resize;background:transparent}
-.opane-rz:hover,.opane-rz.on{background:var(--bd)}
+.opane-rz{flex:0 0 10px;cursor:col-resize;background:transparent;position:relative}
+.opane-rz:hover,.opane-rz.on{background:transparent}
 .opane-note-side{flex:0 0 380px;border-left:1px solid var(--bd);display:flex;flex-direction:column;min-height:0}
 .opane-side-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--bd)}
 .opane-side-head h4{margin:0;font-size:13px;flex:1;color:var(--tx)}
@@ -302,6 +318,15 @@ mark{background:#3a3522;color:#f0d98c;padding:0 3px;border-radius:3px}
 .opane-note{width:100%;flex:1;background:var(--panel2);border:1px solid var(--bd);color:var(--tx);padding:8px 10px;border-radius:6px;font-size:13px;min-height:80px;font-family:inherit;resize:vertical;line-height:1.6;box-sizing:border-box}
 .opane-foot{padding:12px 16px;border-top:1px solid var(--bd);display:flex;justify-content:flex-end}
 .report-tabs button:disabled{opacity:.35;cursor:not-allowed}
+/* ── 2026-11-02 美化包：组件统一 + 空状态 + 主题切换钮 ── */
+.btn.ghost{background:var(--panel2);border:1px solid var(--bd);color:var(--tx2)}
+.btn.ghost:hover{color:var(--tx);border-color:var(--ac)}
+.empty-state td{padding:36px 10px!important;text-align:center;color:var(--tx2);cursor:default;font-size:13px}
+.empty-state:hover td{background:transparent}
+.tbl-prog{display:flex;gap:3px;align-items:center;white-space:nowrap}
+.theme-btn{background:var(--panel2);border:1px solid var(--bd);color:var(--tx2);
+  padding:3px 9px;border-radius:6px;cursor:pointer;font-size:13px;line-height:1.4}
+.theme-btn:hover{color:var(--tx);border-color:var(--ac)}
 .pick-list{max-height:56vh;overflow:auto}
 </style>
 </head>
@@ -314,7 +339,7 @@ mark{background:#3a3522;color:#f0d98c;padding:0 3px;border-radius:3px}
     <button data-tab="policy">政策检索</button>
     <button data-tab="desens">脱敏</button>
   </div>
-  <div class="meta" id="meta"></div>
+  <div class="meta"><button class="theme-btn" id="b-theme" title="深色 / 浅色切换（选择记忆在浏览器）">🌙</button> <span id="meta"></span></div>
 </header>
 <div class="modbar">
   <span id="modinfo"></span>
@@ -355,6 +380,7 @@ mark{background:#3a3522;color:#f0d98c;padding:0 3px;border-radius:3px}
           <th class="sortable" data-col="奖项/项目">奖项<span class="arrow"></span></th>
           <th class="sortable" data-col="得分">得分<span class="arrow"></span></th>
           <th class="sortable" data-col="结论">结论<span class="arrow"></span></th>
+          <th>进度</th>
           <th>操作</th>
         </tr></thead>
         <tbody id="tb"></tbody>
@@ -476,6 +502,23 @@ const ui={
       });
       document.body.appendChild(m); yes.focus();
     });
+  },
+  info(title,msg){                       // 2026-11-02 美化包④：信息弹窗（单钮，无确认语义）
+    return new Promise(res=>{
+      const m=document.createElement('div'); m.className='uiconfirm';
+      const box=document.createElement('div'); box.className='cbox';
+      const t=document.createElement('div'); t.className='cmsg';
+      t.innerHTML='<b>'+escH(title)+'</b>';
+      const txt=document.createElement('div'); txt.className='cmsg'; txt.innerHTML=msg;   // 模板内容，非用户输入
+      const btns=document.createElement('div'); btns.className='cbtns';
+      const ok=document.createElement('button'); ok.className='btn'; ok.textContent='知道了';
+      ok.style.cssText='background:var(--ac);border-color:var(--ac);color:#fff';
+      btns.append(ok); box.append(t,txt,btns); m.appendChild(box);
+      const done=()=>{ m.remove(); res(); };
+      ok.onclick=done; m.onclick=e=>{ if(e.target===m) done(); };
+      m.addEventListener('keydown',e=>{ if(e.key==='Escape'||e.key==='Enter'){ e.stopPropagation(); done(); } });
+      document.body.appendChild(m); ok.focus();
+    });
   }
 };
 
@@ -552,12 +595,24 @@ function indVal(p){                          // 读行业 [门类, 大类]，只
   return [men||guessMen(dl), dl];
 }
 
+// ── 2026-11-02 美化包①：深/浅主题切换（html.light + localStorage 记忆，图表配色跟随）──
+const THEME_KEY='zp_theme';
+function isLight(){ return document.documentElement.classList.contains('light'); }
+function applyTheme(light){
+  document.documentElement.classList.toggle('light',light);
+  const b=$('b-theme'); if(b) b.textContent=light?'☀️':'🌙';
+  try{ localStorage.setItem(THEME_KEY,light?'light':'dark'); }catch(e){}
+  if($('view-charts')&&!$('view-charts').hidden) renderCharts(filtered());
+}
+
 async function boot(){
   DATA=await (await fetch('/api/projects')).json();
   DICTS=await (await fetch('/api/dicts')).json();
   TREE=await (await fetch('/api/dicts/tree')).json();
   ENUMS=await (await fetch('/api/enums')).json();
   MODS=await (await fetch('/api/modules')).json();
+  try{ if(localStorage.getItem(THEME_KEY)==='light') applyTheme(true); }catch(e){}
+  $('b-theme').onclick=()=>applyTheme(!isLight());
   renderModbar(); bindActions(); bindDesens();
   buildFilters(); apply();
 }
@@ -704,9 +759,24 @@ function renderModbar(){
   const off=Object.keys(reg).filter(k=>!on.includes(k));
   $('modinfo').innerHTML=
     '<span><b>当前业务范围：</b>'+on.map(m=>'<span class="on">'+m+'</span>').join(' ')+'</span>'+
-    (off.length?'<span>预留未开通：'+off.map(m=>'<span class="off" title="'+
-      (reg[m]['说明']||'')+'">'+m+'</span>').join(' ')+'</span>':'')+
-    '<span style="opacity:.7">在 config.yaml 的「模块.启用」里加一行即可开通新业务线</span>';
+    (off.length?'<span>待开发·欢迎共建：'+off.map(m=>'<span class="off" data-mod="'+escH(m)+'" style="cursor:pointer" title="点模块名看规划说明">'+m+'</span>').join(' ')+'</span>':'')+
+    '<span style="opacity:.7">点预留模块名看说明；在 config.yaml 的「模块.启用」加一行即可开通新业务线</span>';
+  $('modinfo').querySelectorAll('.off[data-mod]').forEach(el=>{
+    el.onclick=()=>moduleInfo(el.dataset.mod);
+  });
+}
+/* 美化包④（2026-11-02）：预留模块说明面板——开源后网友共建的入口说明。
+   数据全部来自现有 /api/modules 的「登记」段，不新增后端。 */
+function moduleInfo(name){
+  const reg=(MODS['登记']||{})[name]||{};
+  const on=(MODS['启用']||[]).includes(name);
+  ui.info('模块 · '+name,
+    '<div class="detail-sub" style="margin-bottom:8px">'+escH(reg['说明']||'（暂无说明）')+'</div>'
+    +'<div style="font-size:13px;line-height:1.9">'
+    +'状态：<span class="pill '+(on?'ok':'unk')+'">'+(on?'已启用':'待开发')+'</span><br>'
+    +'奖项范围：'+((reg['奖项枚举']||[]).map(a=>escH(a)).join('、')||'—')+'<br>'
+    +'<span style="color:var(--tx2)">该模块暂未开发，数据结构已预留——开源后欢迎共同开发或完善。'
+    +'开通方式：config.yaml「模块.启用」列表加一行模块名（界面/台账/图表即自动按模块过滤）。</span></div>');
 }
 
 function optSel(el,vals,label){
@@ -836,6 +906,14 @@ function renderTable(rows){
   if(PAGE<1) PAGE=1;
   const start=(PAGE-1)*PAGE_SIZE;
   const page=rows.slice(start,start+PAGE_SIZE);    // 只渲染当前页
+  if(!page.length){                                // 美化包⑤：空状态（筛选无结果时给指引，不再是白板）
+    $('tb').innerHTML=`<tr class="empty-state"><td colspan="12">${
+      DATA.length?'没有符合当前筛选的项目——调一调筛选条件，或点「重置」看全部'
+                 :'台账还是空的——点上方「+ 新建项目」或「批量导入」建第一张卡'}</td></tr>`;
+    renderPager(total,pages,start,0);
+    paintSort();
+    return;
+  }
   $('tb').innerHTML=page.map(d=>{
     const rg=arr(d['区域']),id=arr(d['行业']);
     return `<tr data-id="${d['id']}">
@@ -849,6 +927,7 @@ function renderTable(rows){
       <td>${d['奖项/项目']||'—'}</td>
       <td class="score">${d['得分']??'—'}</td>
       <td>${d['结论']||'—'}</td>
+      <td>${progCell(d)}</td>
       <td><button class="tbl-edit" data-id="${d['id']}">编辑</button><button class="tbl-del" data-id="${d['id']}">删除</button></td></tr>`;
   }).join('');
   document.querySelectorAll('#tb tr').forEach(tr=>{
@@ -862,6 +941,21 @@ function renderTable(rows){
   });
   renderPager(total,pages,start,page.length);
   paintSort();
+}
+
+// B4：阈值分页器——筛选结果 >100 条才显示；≤100 条完全隐去（保持现状）
+/* 美化包③（2026-11-02）：表格「进度」列（只读徽标）——信号全部来自现有字段，不新增状态：
+   阶段底色（文审/报告已出=fut、现场中=rev、归档=ok）+ 复盘闭环 勾标（终版/①做法确认/
+   ②模式草稿/③四问已答），悬停徽标看落定日期。 */
+function progCell(d){
+  const st={'文审中':'fut','报告已出':'fut','现场中':'rev','归档':'ok'}[d['阶段']]||'unk';
+  let h=`<span class="pill ${st}">${escH(d['阶段']||'待定')}</span>`;
+  const NAMES={'终版':'终版写入','①':'做法确认','②':'模式草稿','③':'四问已答'};
+  for(const m of ['终版','①','②','③']){
+    const v=d[{'终版':'终版已写','①':'做法确认','②':'模式草稿','③':'四问已答'}[m]];
+    if(v) h+=`<span class="pill ok" title="${NAMES[m]}：${escH(v)}">${m}✓</span>`;
+  }
+  return `<div class="tbl-prog">${h}</div>`;
 }
 
 // B4：阈值分页器——筛选结果 >100 条才显示；≤100 条完全隐去（保持现状）
@@ -934,6 +1028,7 @@ function paintMTabs(){
     <button data-v="onsite" ${canEnter?'':'disabled'} title="${enterTitle}">进入现场评审环节</button>
     <button data-v="review" ${canReview?'':'disabled'} title="${canReview?'':(hasOnsite?'上传现场评审终版 Word 并写入后开启复盘':'未含现场评审类别，不可复盘')}">复盘</button>`;
   $('m-tabs').querySelectorAll('button:not(:disabled)').forEach(b=>b.onclick=()=>{
+    saveTabMem();                                   // 美化包⑨：切走前记住滚动/视图
     $('m-tabs').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
     b.classList.add('on');
     const v=b.dataset.v;
@@ -967,18 +1062,61 @@ function openDetail(pid,tr){
 function closeReport(){
   $('reportModal').style.display='none';
 }
-// B2 逃离出口①：Esc 关闭报告窗体（核实窗体 opane 开着时让位——其填写内容有未保存确认，不被 Esc 绕过）
-// B3 键盘支持：Ctrl+Enter 保存/提交——核实窗体可见=保存核实内容；写入文审报告弹窗可见=确认写入
-document.addEventListener('keydown',e=>{
+// B2 逃离出口①+B3 键盘统一（2026-11-02 美化包⑦）：核实窗体关闭一律走这道闸（按钮/Esc 同源）——
+// 有未保存内容先确认，Esc 不绕过
+async function closeOpaneGuarded(){
+  if(OS_DIRTY){
+    const filled=Object.values(OS_NOTES).filter(v=>v&&String(v).trim()).length;
+    if(!(await ui.confirm('还有未保存的现场核实内容（已填 '+filled+' 条），关闭后将丢失。确定关闭？'))) return;
+  }
+  $('onsitePane').style.display='none';
+}
+/* B2/B3 键盘统一（美化包⑦）：Esc 自上而下关最上层可见弹层（有未保存内容先确认）；
+   Ctrl+Enter 触发当前弹层的确认/保存。优先级与 z-index 一致：
+   soul(96)≈mode(96) > clause(95) > note(90) > opane(70) > clauseSide(60) > 其余 overlay。 */
+const ESC_STACK=[
+  {id:'soulModal', dirty:()=>($('soulInput').value||'').trim(), tip:'四问内容未保存，确定关闭？'},
+  {id:'modeModal', dirty:()=>(($('mode-name').value||'').trim()||($('mode-desc').value||'').trim()), tip:'模式草稿内容未保存，确定关闭？'},
+  {id:'clauseModal'},
+  {id:'noteModal', dirty:()=>($('noteModalInput').value||'').trim(), tip:'心得内容未保存，确定关闭？'},
+  {id:'opane',     close:closeOpaneGuarded},
+  {id:'clauseSide',hide:'clauseSide'},
+  {id:'pickModal'},
+  {id:'onsiteModal'},
+  {id:'placeModal'},
+  {id:'reportModal', close:closeReport},
+];
+function escVisible(x){
+  const el=$(x.id); if(!el) return false;
+  return (x.id==='opane'||x.id==='reportModal')
+    ? el.style.display==='flex'
+    : el.style.display!=='none'&&el.style.display!=='';
+}
+document.addEventListener('keydown',async e=>{
   if(e.ctrlKey&&e.key==='Enter'){
     const op=$('onsitePane'), pm=$('placeModal');
-    if(op&&op.style.display==='flex'){ e.preventDefault(); opaneSaveNotes(); }
-    else if(pm&&pm.style.display==='flex'){ e.preventDefault(); $('placeOk').click(); }
+    if(op&&op.style.display==='flex'){ e.preventDefault(); opaneSaveNotes(); return; }
+    if(pm&&pm.style.display==='flex'){ e.preventDefault(); $('placeOk').click(); return; }
+    // 美化包⑦：小弹窗 Ctrl+Enter = 点它的确认钮
+    for(const [m,ok] of [['noteModal','noteModalOk'],['modeModal','modeOk'],['soulModal','soulNext'],
+                         ['clauseModal','clauseOk'],['onsiteModal','onsiteOk'],['pickModal','pickOk']]){
+      const el=$(m);
+      if(el&&el.style.display==='flex'){ e.preventDefault(); const b=$(ok); if(b&&!b.disabled) b.click(); return; }
+    }
     return;
   }
   if(e.key!=='Escape') return;
-  const rm=$('reportModal'), op=$('onsitePane');
-  if(rm&&rm.style.display==='flex'&&(!op||op.style.display==='none')) closeReport();
+  for(const x of ESC_STACK){
+    if(!escVisible(x)) continue;
+    e.preventDefault();
+    if(x.close){ x.close(); return; }
+    if(x.hide){ $(x.hide).style.display='none'; return; }
+    if(x.dirty&&x.dirty()){                       // 有未保存内容 → 先走确认闸
+      if(!(await ui.confirm(x.tip))) return;
+    }
+    $(x.id).style.display='none';
+    return;
+  }
 });
 // B2 逃离出口②：点遮罩空白处关闭（点在内容框内不关）
 function bindReportOverlay(){
@@ -1020,7 +1158,7 @@ async function renderReport(){
   const r=await fetch('/api/file?path='+encodeURIComponent(srcs[0]));
   const j=await r.json().catch(()=>({}));
   $('e-report').innerHTML=r.ok?j.html:`<p class="detail-sub">加载失败：${j.detail||r.status}</p>`;
-  if(r.ok){ CUR_REPORT=j; renderPractice(j); }
+  if(r.ok){ CUR_REPORT=j; renderPractice(j); restoreTabMem('report'); }   // 美化包⑨：切回恢复滚动/视图
 }
 
 let CUR_REPORT=null;   // 当前报告（含做法索引/obsidian_uri）
@@ -1157,16 +1295,42 @@ function rvStatusBar(archived){
 }
 
 async function refreshCurAndReview(){
-  /* 各复盘步骤成功后的统一刷新：拉台账 → 更新 CUR → 刷表格/门禁 → 重渲染复盘 tab */
+  /* 各复盘步骤成功后的统一刷新：拉台账 → 更新 CUR → 刷表格/门禁 → 重渲染复盘 tab。
+     美化包⑧（2026-11-02）：重渲染前记住滚动位置，渲染后原位恢复——
+     勾选确认/写模式草稿/答四问后页面不再跳回顶部。 */
+  const keep=$('m-body').scrollTop;
   DATA=await (await fetch('/api/projects')).json();
   if(CUR) CUR=DATA.find(d=>String(d['id'])===CUR['id'])||CUR;
   apply();
   paintMTabs();
-  renderReview();
+  renderReview(keep);
 }
 
-function renderReview(){
-  /* 复盘 tab（R5 2026-10-25；2026-10-28 四步闭环重构，见 rvStep 注释）。 */
+/* 美化包⑨（2026-11-02）：报告/复盘 tab 的滚动位置与「只看做法」视图记忆
+   （键=项目id+tab；同卡重开/切 tab 回来都在原位、原视图）。 */
+let TAB_MEM={};
+function tabMemKey(v){ return (CUR?CUR['id']:'')+'|'+v; }
+function saveTabMem(){
+  const cur=document.querySelector('#m-tabs button.on');
+  if(!cur) return;
+  const v=cur.dataset.v;
+  if(v!=='report'&&v!=='review') return;
+  const pvBtn=document.querySelector('.pv-btn.active');
+  TAB_MEM[tabMemKey(v)]={scroll:$('m-body').scrollTop, pv:(pvBtn&&pvBtn.dataset.v)||'full'};
+}
+function restoreTabMem(v){
+  const m=TAB_MEM[tabMemKey(v)];
+  if(!m) return;
+  $('m-body').scrollTop=m.scroll;
+  if(v==='report'&&m.pv==='practice'){
+    const pb=document.querySelector('.pv-btn[data-v="practice"]');
+    if(pb) pb.click();
+  }
+}
+
+function renderReview(keepScroll){
+  /* 复盘 tab（R5 2026-10-25；2026-10-28 四步闭环重构，见 rvStep 注释）。
+     keepScroll=美化包⑧：复盘步骤刷新后原位恢复滚动。 */
   const srcs=arr(CUR['来源文件']);
   if(!srcs.length){ $('m-body').innerHTML='<p class="detail-sub">暂无关联报告，无法复盘。</p>'; return; }
   $('m-body').innerHTML='<p class="detail-sub">加载做法清单…</p>';
@@ -1226,6 +1390,7 @@ function renderReview(){
       ${archBtn}
       <span class="detail-sub">模式写入 40-质量模式库，之后去 Obsidian 精修；三步全留痕才能归档</span></div>`;
     $('m-body').innerHTML=html;
+    if(keepScroll) $('m-body').scrollTop=keepScroll; else restoreTabMem('review');   // 美化包⑧⑨
     $('rv-confirm').onclick=confirmPractices;
     $('rv-draft').onclick=openModeDraftModal;
     $('rv-soul').onclick=openSoulModal;
@@ -1294,6 +1459,7 @@ async function openModeDraftModal(){
     :'<span class="detail-sub">（未勾选做法——可直接生成模式草稿，入选做法留空）</span>';
   $('mode-name').value=autoName; $('mode-desc').value=autoDesc;
   $('modeModal').style.display='flex';
+  setTimeout(()=>$('mode-name').focus(),50);           // 美化包⑩：自动聚焦
   $('modeClose').onclick=()=>$('modeModal').style.display='none';
   $('modeCancel').onclick=()=>$('modeModal').style.display='none';
   $('modeOk').onclick=async()=>{
@@ -1406,6 +1572,7 @@ function paintSoul(){
   $('soulHint').textContent=`第 ${SOUL_I+1} 题 / 共 ${SOUL_Q.length} 题 · 答完保存进复盘沉淀`;
   $('soulNext').textContent=SOUL_I===SOUL_Q.length-1?'保存':'下一题';
   $('soulSkip').style.display=SOUL_I===SOUL_Q.length-1?'none':'';
+  setTimeout(()=>$('soulInput').focus(),50);           // 美化包⑩：自动聚焦
   $('soulClose').onclick=()=>{ $('soulModal').style.display='none'; };
   $('soulSkip').onclick=()=>{ SOUL_A[SOUL_I]=''; SOUL_I++; SOUL_I<SOUL_Q.length?paintSoul():finishSoul(); };
   $('soulNext').onclick=()=>{ SOUL_A[SOUL_I]=$('soulInput').value.trim(); SOUL_I++; SOUL_I<SOUL_Q.length?paintSoul():finishSoul(); };
@@ -1488,6 +1655,7 @@ function openClauseModal(){
   $('clauseBody').innerHTML=html;
   $('clauseModal').style.display='flex';
   updateClauseHint();
+  { const s0=$('clauseBody').querySelector('.ci-sel'); if(s0) setTimeout(()=>s0.focus(),50); }   // 美化包⑩
   $('clauseModalClose').onclick=()=>$('clauseModal').style.display='none';
   $('clauseCancel').onclick=()=>$('clauseModal').style.display='none';
   $('clauseOk').onclick=confirmClauses;
@@ -1626,6 +1794,27 @@ let OS_SAVING=false;       // 切换条款触发保存时的进行中锁（防�
 let OS_LEFT_W=250;         // 核实窗体左栏宽度（拖拽可调）
 let OS_SIDE_W=380;         // 核实窗体右栏「条款心得/原文」宽度（拖拽可调，默认同 CSS 380px）
 let OB_W=920;              // 报告预览窗体宽度（左右拖拽可调）
+/* 美化包⑥（2026-11-02）：三个宽度 localStorage 记忆 + 双击把手复位，读写集中在 WIDTHS_* */
+const WIDTHS_KEY='zp_widths';
+const WIDTHS_DEF={OS_LEFT_W:250,OS_SIDE_W:380,OB_W:920};
+function loadWidths(){
+  let s={}; try{ s=JSON.parse(localStorage.getItem(WIDTHS_KEY)||'{}'); }catch(e){}
+  OS_LEFT_W=Math.min(520,Math.max(140,Number(s.OS_LEFT_W)||WIDTHS_DEF.OS_LEFT_W));
+  OS_SIDE_W=Math.min(900,Math.max(280,Number(s.OS_SIDE_W)||WIDTHS_DEF.OS_SIDE_W));
+  OB_W=Math.min(1500,Math.max(460,Number(s.OB_W)||WIDTHS_DEF.OB_W));
+}
+function saveWidths(){
+  try{ localStorage.setItem(WIDTHS_KEY,JSON.stringify({OS_LEFT_W,OS_SIDE_W,OB_W})); }catch(e){}
+}
+function resetWidths(){
+  try{ localStorage.removeItem(WIDTHS_KEY); }catch(e){}
+  OS_LEFT_W=WIDTHS_DEF.OS_LEFT_W; OS_SIDE_W=WIDTHS_DEF.OS_SIDE_W; OB_W=WIDTHS_DEF.OB_W;
+  const box=$('reportBox'); if(box&&!box.classList.contains('full')) box.style.width=OB_W+'px';
+  const lft=$('opaneLeft'); if(lft&&!lft.classList.contains('collapsed')) lft.style.flexBasis=OS_LEFT_W+'px';
+  const side=$('opaneSide'); if(side&&side.style.display!=='none') side.style.flexBasis=OS_SIDE_W+'px';
+  ui.toast('窗体宽度已恢复默认（250 / 380 / 920）');
+}
+loadWidths();              // 启动即读记忆宽度
 let OS_SIDE_PATH=null;     // 心得窗格当前条款路径
 let PICK_DATA=null;        // 勾选弹窗数据（/api/onsite-score 评分表缓存）
 let PICK_ITEMS=[];         // 勾选弹窗条目
@@ -1669,13 +1858,7 @@ function openOnsitePane(){
   if(!terms.length){ ui.toast('现场评审报告中没有条款核实内容。'); return; }
   $('opaneTitle').textContent='现场评审 · '+(CUR['企业名称']||'');
   $('onsitePane').style.display='flex';
-  $('opaneClose').onclick=async()=>{
-    if(OS_DIRTY){
-      const filled=Object.values(OS_NOTES).filter(v=>v&&String(v).trim()).length;
-      if(!(await ui.confirm('还有未保存的现场核实内容（已填 '+filled+' 条），关闭后将丢失。确定关闭？'))) return;
-    }
-    $('onsitePane').style.display='none';
-  };
+  $('opaneClose').onclick=closeOpaneGuarded;
   $('opaneExpand').onclick=()=>{ $('opaneLeft').classList.remove('collapsed'); $('opaneLeft').style.flexBasis=OS_LEFT_W+'px'; };
   $('opaneSideClose').onclick=()=>{ $('opaneSide').style.display='none'; $('opaneSideRz').style.display='none'; };
   $('opaneSideNote').onclick=opaneAddNote;
@@ -1840,7 +2023,9 @@ function bindOboxResize(){
     state.rz.classList.remove('on');
     state=null;
     document.body.style.cursor=''; document.body.style.userSelect='';
+    saveWidths();                                   // 美化包⑥：宽度落记忆
   });
+  [$('oboxRzL'),$('oboxRzR')].forEach(h=>{ h.ondblclick=resetWidths; });   // 美化包⑥：双击复位
 }
 
 function bindOpaneResize(){
@@ -1852,7 +2037,8 @@ function bindOpaneResize(){
     OS_LEFT_W=Math.min(520,Math.max(140,sw+e.clientX-sx));
     if(!$('opaneLeft').classList.contains('collapsed')) left.style.flexBasis=OS_LEFT_W+'px';
   });
-  document.addEventListener('mouseup',()=>{ if(!on) return; on=false; rz.classList.remove('on'); document.body.style.cursor=''; });
+  document.addEventListener('mouseup',()=>{ if(!on) return; on=false; rz.classList.remove('on'); document.body.style.cursor=''; saveWidths(); });
+  rz.ondblclick=resetWidths;                        // 美化包⑥：双击复位
 }
 
 // 右栏「条款心得/原文」宽拖拽（手柄在主区与侧栏之间；侧栏关闭时手柄一并隐藏）
@@ -1867,7 +2053,8 @@ function bindOpaneSideResize(){
     OS_SIDE_W=Math.min(900,Math.max(280,sw-(e.clientX-sx)));
     side.style.flexBasis=OS_SIDE_W+'px';
   });
-  document.addEventListener('mouseup',()=>{ if(!on) return; on=false; rz.classList.remove('on'); document.body.style.cursor=''; });
+  document.addEventListener('mouseup',()=>{ if(!on) return; on=false; rz.classList.remove('on'); document.body.style.cursor=''; saveWidths(); });
+  rz.ondblclick=resetWidths;                        // 美化包⑥：双击复位
 }
 
 // ── 勾选弹窗（编辑项目类别=现场评审时勾选「我负责的条款」）────────
@@ -1919,6 +2106,7 @@ async function openPickModal(){
   $('pickForm').innerHTML=rows.join('');
   $('pickSub').textContent='适用标准 '+(j['标准']||'')+' · 从缓存的评分表勾选要核实的条款（横切项需选归属）';
   $('pickModal').style.display='flex';
+  setTimeout(()=>{ const el=$('pickForm').querySelector('.os-chk'); if(el) el.focus(); },50);   // 美化包⑩
   $('pickModalClose').onclick=()=>{ $('pickModal').style.display='none'; UPDATE_PENDING=false; };
   $('pickCancel').onclick=()=>{ $('pickModal').style.display='none'; UPDATE_PENDING=false; };
   $('pickForm').querySelectorAll('.os-chk').forEach(chk=>{
@@ -1988,6 +2176,7 @@ function askOnsiteWrite(picks){
   rows.push(`<div class="fld"><label>现场日期（默认关联原报告；改动后文件名跟随，现场评审库只保留唯一一份）</label><input type="date" id="onsite-date" value="${escH(defDate)}"></div>`);
   $('onsiteForm').innerHTML=rows.join('');
   $('onsiteModal').style.display='flex';
+  setTimeout(()=>{ const el=$('os-concl'); if(el) el.focus(); },50);   // 美化包⑩
   $('onsiteModalClose').onclick=()=>$('onsiteModal').style.display='none';
   $('onsiteCancel').onclick=()=>$('onsiteModal').style.display='none';
   $('onsiteOk').onclick=()=>doWriteOnsite(picks);
@@ -2035,6 +2224,7 @@ function askNote(){
   return new Promise(resolve=>{
     $('noteModalInput').value='';
     $('noteModal').style.display='flex';
+    setTimeout(()=>$('noteModalInput').focus(),50);   // 美化包⑩：自动聚焦首输入框
     const done=v=>{ $('noteModal').style.display='none'; resolve(v); };
     $('noteModalOk').onclick=()=>done($('noteModalInput').value);
     $('noteModalCancel').onclick=()=>done(null);
@@ -2101,7 +2291,8 @@ async function editProject(pid){
         :'<span style="color:var(--tx2);font-size:12px">无同企业其他项目</span>'}</div></div>
     <button class="btn" id="ed-save">保存</button>
     <button class="btn" id="ed-update" style="margin-left:8px;display:none">更新（重建现场报告）</button>
-    <button class="btn" id="ed-cancel" style="background:#3a3f49;margin-left:8px">取消</button>`;
+    <button class="btn ghost" id="ed-cancel" style="margin-left:8px">取消</button>`;
+  setTimeout(()=>{ const el=$('ed-name'); if(el) el.focus(); },50);   // 美化包⑩
   $('ed-close').onclick=closeDetail;
   $('ed-cancel').onclick=()=>openDetail(pid);
   const syncUpdateBtn=()=>{
@@ -2192,7 +2383,7 @@ function newForm(){
     <div class="fld"><label>现场日期（现场评审项目，用于文件名）</label><input id="n-fdate" type="date"></div>
     <div class="fld"><label>备注</label><input id="n-note" placeholder="写进卡片正文"></div>
     <button class="btn" id="n-create">创建卡片</button>
-    <button class="btn" id="n-cancel" style="margin-left:8px;background:#3a3f49">取消</button>`;
+    <button class="btn ghost" id="n-cancel" style="margin-left:8px">取消</button>`;
   $('n-cat').querySelectorAll('span').forEach(s=>s.onclick=()=>{
     $('n-cat').querySelectorAll('span').forEach(x=>x.classList.remove('on'));
     s.classList.add('on');
@@ -2267,15 +2458,25 @@ async function create(){
   ui.toast('已创建：'+pid+'  '+j['企业']);
 }
 
-const AX={axisLabel:{color:'#9aa3b2'},axisLine:{lineStyle:{color:'#333a45'}},
-  splitLine:{lineStyle:{color:'#262b34'}}};
+function ax(){                       // 坐标轴配色随深/浅主题（2026-11-02 美化包①）
+  return isLight()
+    ?{axisLabel:{color:'#5b6673'},axisLine:{lineStyle:{color:'#c3ccd7'}},splitLine:{lineStyle:{color:'#e2e7ee'}}}
+    :{axisLabel:{color:'#9aa3b2'},axisLine:{lineStyle:{color:'#333a45'}},splitLine:{lineStyle:{color:'#262b34'}}};
+}
+function tone(){                     // 图表文字/底色/主色随主题
+  return isLight()
+    ?{text:'#3a424d',panel:'#ffffff',panel2:'#eef1f6',border:'#d4dbe4',label:'#5b6673',ac:'#1c66c4'}
+    :{text:'#c7cdd8',panel:'#1e2229',panel2:'#242932',border:'#333a45',label:'#9aa3b2',ac:'#4a9eff'};
+}
 const PAL=['#4a9eff','#38c5a0','#ef9f27','#a78bfa','#e24b4a','#5dcaa5','#f0997b','#85b7eb'];
 function chart(id,opt){
   const el=$(id); if(!el) return;
+  const t=tone();
   const c=echarts.getInstanceByDom(el)||echarts.init(el,null,{renderer:'canvas'});
   c.setOption(Object.assign({backgroundColor:'transparent',
-    textStyle:{color:'#c7cdd8'},
-    tooltip:{trigger:'axis',backgroundColor:'#242932',borderColor:'#333a45',textStyle:{color:'#e6e9ef'}}},opt),true);
+    textStyle:{color:t.text},
+    tooltip:{trigger:'axis',backgroundColor:t.panel2,borderColor:t.border,
+      textStyle:{color:isLight()?'#242a31':'#e6e9ef'}}},opt),true);
   c.resize();
 }
 function countBy(rows,fn){
@@ -2284,18 +2485,21 @@ function countBy(rows,fn){
   return Object.entries(m).sort((a,b)=>b[1]-a[1]);
 }
 function bar(id,data,name,horiz){
+  const axp=ax(), t=tone();
   chart(id,{grid:horiz?{left:90,right:30,top:24,bottom:24}:{left:40,right:20,top:24,bottom:40},
-    xAxis:horiz?Object.assign({type:'value'},AX):Object.assign({type:'category',data:data.map(d=>d[0])},AX),
-    yAxis:horiz?Object.assign({type:'category',data:data.map(d=>d[0])},AX):Object.assign({type:'value'},AX),
+    xAxis:horiz?Object.assign({type:'value'},axp):Object.assign({type:'category',data:data.map(d=>d[0])},axp),
+    yAxis:horiz?Object.assign({type:'category',data:data.map(d=>d[0])},axp):Object.assign({type:'value'},axp),
     series:[{type:'bar',data:data.map(d=>d[1]),name:name,
-      itemStyle:{color:'#4a9eff',borderRadius:[3,3,0,0]},barMaxWidth:26}]});
+      itemStyle:{color:t.ac,borderRadius:[3,3,0,0]},barMaxWidth:26}]});
 }
 function pie(id,data){
-  chart(id,{tooltip:{trigger:'item',backgroundColor:'#242932',borderColor:'#333a45',textStyle:{color:'#e6e9ef'}},
-    legend:{bottom:0,textStyle:{color:'#9aa3b2'},itemWidth:10,itemHeight:10},
+  const t=tone();
+  chart(id,{tooltip:{trigger:'item',backgroundColor:t.panel2,borderColor:t.border,
+      textStyle:{color:isLight()?'#242a31':'#e6e9ef'}},
+    legend:{bottom:0,textStyle:{color:t.label},itemWidth:10,itemHeight:10},
     series:[{type:'pie',radius:['38%','62%'],center:['50%','45%'],data:data.map(d=>({name:d[0],value:d[1]})),
-      itemStyle:{borderColor:'#1e2229',borderWidth:2},
-      label:{color:'#9aa3b2',formatter:'{b} {c}'}}],
+      itemStyle:{borderColor:t.panel,borderWidth:2},
+      label:{color:t.label,formatter:'{b} {c}'}}],
     color:PAL});
 }
 function renderCharts(rows){
@@ -2319,10 +2523,11 @@ function renderCharts(rows){
   bar('c-score',Object.entries(bins).filter(x=>x[1]),'项目数');
   const years=[...new Set(rows.map(d=>d['年份']))].filter(Boolean).sort();
   const cats=[...new Set(rows.flatMap(d=>arr(d['类别'])))].sort();
+  const axp=ax(), t=tone();
   chart('c-cross',{grid:{left:50,right:20,top:40,bottom:40},
-    legend:{top:0,textStyle:{color:'#9aa3b2'}},
-    xAxis:Object.assign({type:'category',data:years},AX),
-    yAxis:Object.assign({type:'value'},AX),
+    legend:{top:0,textStyle:{color:t.label}},
+    xAxis:Object.assign({type:'category',data:years},axp),
+    yAxis:Object.assign({type:'value'},axp),
     series:cats.map((c,i)=>({name:c,type:'bar',stack:'t',barMaxWidth:40,
       itemStyle:{color:PAL[i%PAL.length]},
       data:years.map(y=>rows.filter(d=>d['年份']===y&&arr(d['类别']).includes(c)).length)})),
@@ -2424,7 +2629,7 @@ boot();
     </div>
     <div class="ofoot">
       <button class="btn" id="noteModalOk">确定</button>
-      <button class="btn" id="noteModalCancel" style="background:#3a3f49">取消</button>
+      <button class="btn ghost" id="noteModalCancel">取消</button>
     </div>
   </div>
 </div>
@@ -2437,7 +2642,7 @@ boot();
     </div>
     <div class="ofoot">
       <button class="btn" id="placeOk">确认写入</button>
-      <button class="btn" id="placeCancel" style="background:#3a3f49">取消</button>
+      <button class="btn ghost" id="placeCancel">取消</button>
     </div>
   </div>
 </div>
@@ -2451,7 +2656,7 @@ boot();
     </div>
     <div class="ofoot">
       <button class="btn" id="modeOk">写入模式库</button>
-      <button class="btn" id="modeCancel" style="background:#3a3f49">取消</button>
+      <button class="btn ghost" id="modeCancel">取消</button>
     </div>
   </div>
 </div>
@@ -2480,7 +2685,7 @@ boot();
       <span class="detail-sub" id="clauseHint"></span>
       <button class="btn" id="clauseMemClear" style="background:#3a3f49">清除选择记忆</button>
       <button class="btn" id="clauseOk">确认归位</button>
-      <button class="btn" id="clauseCancel" style="background:#3a3f49">取消</button>
+      <button class="btn ghost" id="clauseCancel">取消</button>
     </div>
   </div>
 </div>
@@ -2493,7 +2698,7 @@ boot();
     </div>
     <div class="ofoot">
       <button class="btn" id="onsiteOk">确认写入</button>
-      <button class="btn" id="onsiteCancel" style="background:#3a3f49">取消</button>
+      <button class="btn ghost" id="onsiteCancel">取消</button>
     </div>
   </div>
 </div>
@@ -2506,10 +2711,10 @@ boot();
     </div>
     <div class="ofoot">
       <button class="btn" id="pickOk">确认勾选</button>
-      <button class="btn" id="pickCancel" style="background:#3a3f49">取消</button>
+      <button class="btn ghost" id="pickCancel">取消</button>
     </div>
   </div>
 </div>
-<div style="position:fixed;bottom:6px;right:12px;z-index:9999;font-size:11px;color:#7a8496;opacity:.85;pointer-events:none">v20261102c</div>
+<div style="position:fixed;bottom:6px;right:12px;z-index:9999;font-size:11px;color:#7a8496;opacity:.85;pointer-events:none">v20261102d</div>
 </body>
 </html>
