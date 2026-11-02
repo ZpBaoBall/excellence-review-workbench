@@ -434,7 +434,7 @@ def api_mode_draft(body: ModeDraftBody):
     report_rel = _find_onsite_report(rec) or ""
     rel, fp = _write_mode_card(rec, comp, name, desc, body.做法 or [], report_rel)
     # 台账闭环②信号：模式草稿已生成（覆盖式，再生成即更新日期）
-    _backup_file(store.LEDGER_JSON)
+    _backup_file(store.ledger_file())
     items = store.load_ledger()
     items[idx]["模式草稿"] = datetime.now().strftime("%Y-%m-%d")
     store.save_ledger(items)
@@ -667,7 +667,7 @@ def api_review_note(body: ReviewNoteBody):
     callout = f"> [!note]- {date} 复盘沉淀\n{quoted}\n"
     _retry_io(lambda: fp.write_text(_append_to_section(txt, "复盘沉淀", callout), encoding="utf-8"), "写复盘沉淀")
     # 台账闭环③信号：四问已答（覆盖式，补写即刷新日期）
-    _backup_file(store.LEDGER_JSON)
+    _backup_file(store.ledger_file())
     items = store.load_ledger()
     items[idx]["四问已答"] = date
     store.save_ledger(items)
@@ -707,7 +707,7 @@ def api_practice_confirm(body: PracticeConfirmBody):
     date = datetime.now().strftime("%Y-%m-%d")
     if n == 0:
         # 零条：不落空 callout（2026-10-30 R4 用户拍板），只置位台账闭环信号
-        _backup_file(store.LEDGER_JSON)
+        _backup_file(store.ledger_file())
         items = store.load_ledger()
         items[idx]["做法确认"] = date
         store.save_ledger(items)
@@ -726,7 +726,7 @@ def api_practice_confirm(body: PracticeConfirmBody):
     _backup_file(fp)
     _retry_io(lambda: fp.write_text(new_txt, encoding="utf-8"), "写做法确认")
     # 台账闭环①信号：做法已确认（覆盖式，再次确认即刷新日期）
-    _backup_file(store.LEDGER_JSON)
+    _backup_file(store.ledger_file())
     items = store.load_ledger()
     items[idx]["做法确认"] = date
     store.save_ledger(items)
@@ -870,7 +870,7 @@ def api_write_review(body: WriteReviewBody):
     if mfold:
         fold_date = f"{mfold.group(1)}-{mfold.group(2)}-{mfold.group(3)}"
 
-    _backup_file(store.LEDGER_JSON)
+    _backup_file(store.ledger_file())
     if fp.exists():
         _backup_file(fp)
 
@@ -1140,7 +1140,7 @@ def api_write_onsite(body: WriteOnsiteBody):
     fname = normalize_filename(comp, date, ".md")
     fp2 = out_dir / fname
 
-    _backup_file(store.LEDGER_JSON)
+    _backup_file(store.ledger_file())
     if fp2.exists():
         _backup_file(fp2)
 
@@ -1957,7 +1957,7 @@ def api_auto_link():
                                      "历史项目": merged})
     if CFG.get("安全", {}).get("写入前备份", True) and (
             any(not _as_list(d.get("来源文件")) for d in items) or hist_changed):
-        _backup_file(store.LEDGER_JSON)
+        _backup_file(store.ledger_file())
     linked, no_match = [], []
     for d in items:
         if _as_list(d.get("来源文件")):
@@ -2008,7 +2008,7 @@ def api_update(pid: str, body: PatchBody):
     for k in body.fields:
         if k not in EDITABLE_FIELDS:
             raise HTTPException(403, f"字段「{k}」不可在工作台修改")
-    _backup_file(store.LEDGER_JSON)
+    _backup_file(store.ledger_file())
     items = store.load_ledger()
     old_comp = str(items[idx].get("企业名称") or "").strip()
     new_comp = str(body.fields.get("企业名称") or "").strip()
@@ -2051,7 +2051,7 @@ def api_delete(pid: str):
     idx, rec = find_project(pid)
     if idx is None:
         raise HTTPException(404, f"未找到项目 {pid}")
-    _backup_file(store.LEDGER_JSON)
+    _backup_file(store.ledger_file())
     items = store.load_ledger()
     removed = items.pop(idx)
     for d in items:
@@ -2253,7 +2253,7 @@ if __name__ == "__main__":
     _check_paths()
     rot = desens.rotate_backup()   # 启动时清理一次（A4 起即时轮转已兜底，此为双保险）
     print(f"评审工作台启动: http://127.0.0.1:{port}")
-    print(f"台账数据: {store.LEDGER_JSON}")
+    print(f"台账数据: {store.ledger_file()}（{store.STORAGE_TYPE} 模式）")
     print(f"脱敏级别: {CFG.get('脱敏', {}).get('级别', '严格')} | 备份轮转: "
           f"自动 {rot['自动备份']['删除']} 删/{rot['自动备份']['保留']} 留, "
           f"代码 {rot['代码备份']['删除']} 删/{rot['代码备份']['保留']} 留")

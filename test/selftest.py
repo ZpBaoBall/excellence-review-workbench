@@ -1032,6 +1032,34 @@ def _docx_text(blob):
     return out
 
 
+def s9_storage_sqlite():
+    """S9 存储适配（2026-11-02 第 2 步）：sqlite 模式读写离线自检——
+    切临时库做真写真读，不动服务与真实台账（store 的模块级变量即切换开关）。"""
+    section("S9 存储适配（sqlite 模式，离线）")
+    import store as ST
+    tmp = H.ROOT / "data" / "tmp" / "s9-workbench.db"
+    tmp.parent.mkdir(parents=True, exist_ok=True)
+    if tmp.exists():
+        tmp.unlink()
+    old_type, old_db = ST.STORAGE_TYPE, ST.DB_PATH
+    ST.STORAGE_TYPE, ST.DB_PATH = "sqlite", tmp
+    try:
+        rows = [{"id": "S9-T1", "企业名称": "sqlite自检公司", "年份": 2025}]
+        ST.save_ledger(rows)
+        ST.save_dicts({"类别": [["文件评审", "现场评审"]]})
+        CK.check("S9a sqlite 台账写入读回", ST.load_ledger() == rows, str(ST.load_ledger())[:60])
+        CK.check("S9b sqlite 字典写入读回",
+                 ST.load_dicts() == {"类别": [["文件评审", "现场评审"]]}, "")
+        CK.check("S9c 单文件库落位", tmp.exists(), tmp.name)
+        CK.check("S9d ledger_file() 跟随模式", ST.ledger_file() == tmp, str(ST.ledger_file()))
+    finally:
+        ST.STORAGE_TYPE, ST.DB_PATH = old_type, old_db
+        if tmp.exists():
+            tmp.unlink()
+    CK.eq("S9e 还原后回到 json 模式", ST.STORAGE_TYPE, "json")
+    CK.check("S9f json 模式台账可读（真实台账不受污染）", isinstance(ST.load_ledger(), list), "")
+
+
 # ── 主流程 ─────────────────────────────────────────────────
 def main():
     print("=" * 56)
@@ -1065,6 +1093,7 @@ def main():
         CK.check("S6b 还原后台账卡集合不变",
                  {str(c.get("id")) for c in H.cards()} == before_ids,
                  f"差异 { {str(c.get('id')) for c in H.cards()} ^ before_ids }")
+    s9_storage_sqlite()                   # 存储适配：离线，不动服务
     return CK.summary("SELFTEST")
 
 
