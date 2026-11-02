@@ -6,13 +6,13 @@
 
 用法：
     from desens import mask, unmask, check_allowed, DesensError
-    r = mask(text, scene="政策检索", vendor="workbuddy", task="锦持政策检索")
+    r = mask(text, scene="政策检索", vendor="workbuddy", task="示例企业政策检索")
     # r.text 已脱敏可外发；r.mapping 用于回收后还原
     plain = unmask(reply_text, r.mapping)
 
 已知局限（机器无解，说明书已载明）：
-  1. 唯一性描述抓不到 —— 「临港唯一一家做汽车再制造的」没点名却能定位
-  2. 小行业天然可识别 —— 全市再制造企业仅 11 家，行业+区域已足够窄
+  1. 唯一性描述抓不到 —— 「临港唯一一家做游艇维修的」没点名却能定位
+  2. 小行业天然可识别 —— 全市游艇维修企业仅 11 家，行业+区域已足够窄
   因此 config 把「整篇报告生成」列进禁止出网场景，只走任务包人工搬运。
 """
 
@@ -377,7 +377,7 @@ def rotate_backup(keep: int = None):
 if __name__ == "__main__":
     import sys
     demo = (
-        "上海锦持汽车零部件再制造有限公司位于浦东新区临港新片区山海路123号，"
+        "上海某某制造有限公司位于浦东新区临港新片区山海路123号，"
         "总经理张建国，电话 13812345678，邮箱 jinchi@example.com，网址 https://jinchi.example.com，"
         "统一社会信用代码 91310115MA1K3XXX8H，证书编号：XK06-001-00001。"
         "2024 年营业收入 3.2 亿元，主要客户为上汽乘用车有限公司。"

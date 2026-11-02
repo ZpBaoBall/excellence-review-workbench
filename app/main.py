@@ -136,7 +136,7 @@ def find_project(pid: str):
 
 
 def _norm_company(name: str) -> str:
-    """去掉公司后缀，用于同名/简称匹配（如「上海五同同步带有限公司」≈「上海五同同步带」）"""
+    """去掉公司后缀，用于同名/简称匹配（如「上海某某制造有限公司」≈「上海某某制造」）"""
     return re.sub(r"(股份有限公司|有限责任公司|有限公司|合作社|集团公司|集团)$",
                   "", str(name or "").strip())
 
@@ -598,7 +598,7 @@ def _ensure_fm_line(md_text: str, key: str, value: str) -> str:
     """在 MD 的 frontmatter 里补/改一行「key: value」（已有则就地改写，不重复加）。
 
     2026-10-30 R5 用户拍板：30 库现场报告 ↔ 40 库模式卡双关联，frontmatter 互指
-    （主理人已手工为锦持/五同做过这两条，代码要能自动保持）。
+    （主理人已手工为两家真实企业做过这两条，代码要能自动保持）。
     """
     if not value or not (md_text or "").lstrip().startswith("---"):
         return md_text

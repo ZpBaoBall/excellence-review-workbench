@@ -303,11 +303,11 @@ async function e2Search(page) {
   console.log("\n── E2 搜索：字段命中 + 分词 AND + 防抖 ──");
   await page.fill("#f-kw", "");
   await sleep(300);
-  // ① 单字段命中（阶段字段）——自适应读锦持真实阶段，不写死它的状态
+  // ① 单字段命中（阶段字段）——自适应读示例企业真实阶段，不写死它的状态
   //    （2026-10-26 教训：写死「现场中」曾在台账被陈旧备份污染后误报 FAIL）
   const jinchiStage = (await allCards()).find((c) => c["id"] === "2026-SH-文审-001")?.["阶段"] || "报告已出";
-  // 命中数按台账实算（不写死 1）：锦持阶段改过之后可能与另一张卡同阶段（如「归档」），
-  // 写死会让这条断言变成数据态探针——2026-10-30 实测：锦持阶段改为「归档」后与五同撞车
+  // 命中数按台账实算（不写死 1）：示例企业阶段改过之后可能与另一张卡同阶段（如「归档」），
+  // 写死会让这条断言变成数据态探针——2026-10-30 实测：示例企业阶段改为「归档」后与另一家撞车
   const stageN = (await allCards()).filter((c) => c["阶段"] === jinchiStage).length;
   await page.fill("#f-kw", jinchiStage);
   await sleep(600);
@@ -423,7 +423,7 @@ async function e3Dialogs(page) {
 
   // ④ Ctrl+Enter 三态路由（打开核实窗体 → Ctrl+Enter 走保存）
   //    自建「现场评审」测试卡 + 最小现场 MD（2026-10-26）：不再点首行依赖真实卡状态——
-  //    锦持回到文件评审后「进入现场评审」禁用是正确产品行为；且 opane 需要
+  //    示例企业回到文件评审后「进入现场评审」禁用是正确产品行为；且 opane 需要
   //    来源文件指向 30 库现场 MD 才打开（端点 _find_onsite_report 规则）
   const e3md = path.join(MD30, "20260825-" + ST + ".md");
   fs.writeFileSync(e3md, [
@@ -858,7 +858,7 @@ async function e5SoulAndMode(page, ctx) {
     await sleep(500);
     const soulOpen = await page.$eval("#soulModal", (m) => m.style.display === "flex");
     t("E5a 复盘 tab 独立考问打开", soulOpen);
-    const answers = ["E2E长见识：再制造旧件溯源比想象中粗。", "E2E校准：4.4.3 是展示问题实质不弱。",
+    const answers = ["E2E长见识：批次溯源比想象中粗。", "E2E校准：4.4.3 是展示问题实质不弱。",
       "E2E提炼：战略解码机制可直接搬用。", "E2E避雷：差点把展示不足误判为管理弱项。"];
     for (let i = 0; i < 4; i++) {
       await page.fill("#soulInput", answers[i]);

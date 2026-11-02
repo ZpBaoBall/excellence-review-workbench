@@ -258,7 +258,7 @@ function packForm(region,industry,pid){
     <p class="detail-sub">粘贴一段你对报告的理解（要查什么政策），连同行业/区域一起打成任务包，
     交给 WorkBuddy 联网检索后，把结果内联回企业报告的「三、政策与指南建议」章节。政策不单独存卡。</p>
     <div class="fld"><label>检索意图（粘贴你对报告的理解 / 要查什么）*</label>
-      <textarea id="k-intent" placeholder="例：该企业是传动带/同步带制造，正在评政府质量奖，帮我查浦东新区针对先进制造业、国产替代、专精特新的扶持政策与奖励办法，给出文号与一手出处链接…"></textarea></div>
+      <textarea id="k-intent" placeholder="例：该企业是包装材料制造，正在评政府质量奖，帮我查浦东新区针对先进制造业、国产替代、专精特新的扶持政策与奖励办法，给出文号与一手出处链接…"></textarea></div>
     <div class="fld"><label>区域</label>${regSel('k',clean(rg[0])||Object.keys(TC())[0]||'',clean(rg[1]),'（不限）')}</div>
     <div class="fld"><label>行业（GB/T 4754）</label>${indSel('k',clean(ind[0]),clean(ind[1]),'（不限）')}</div>
     <div class="fld"><label>关联评审项目 / 回填目标报告</label>
